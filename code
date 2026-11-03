@@ -1,0 +1,263 @@
+ALU Program:-
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+entity bit4 is
+    Port (
+        a  : in  STD_LOGIC_VECTOR (3 downto 0);
+        b  : in  STD_LOGIC_VECTOR (3 downto 0);
+        op : in  STD_LOGIC_VECTOR (2 downto 0);
+        c  : out STD_LOGIC_VECTOR (4 downto 0)
+    );
+end bit4;
+architecture Behavioral of bit4 is
+begin
+    Process(a,b,Op)
+    Begin
+        Case op is
+            When "000" => 
+             c <= ('0' & a) + ('0' & b);
+            When "001" => c <= ('0' & a) - ('0' & b);
+            When "010" => c <= ('0' & a) AND ('0' & b);
+            When "011" => c <= ('0' & a) OR ('0' & b);
+            When "100" => c <= ('0' & a) XOR ('0' & b);
+            When "101" => c <= ('0' & a) NAND ('0' & b);
+            When "110" => c <= ('0' & a) XNOR ('0' & b);
+            When others => c <= '0' & (not a);
+        End case;
+    End process;
+end Behavioral;
+
+OUTPUT:-
+
+
+
+
+
+
+
+
+SHIFT REGISTER Program:-
+library IEEE; 
+use IEEE.STD_LOGIC_1164.ALL; 
+entity prr is Port 
+(clr : in STD_LOGIC; 
+ sel : in STD_LOGIC_VECTOR (1 downto 0);
+ shf_load : in STD_LOGIC; 
+ serial_in : in STD_LOGIC;
+clk : in STD_LOGIC; 
+d : in STD_LOGIC_VECTOR (3 downto 0); 
+q : inout STD_LOGIC_VECTOR (3 downto 0) );
+ end prr;
+ architecture Behavioral of prr is 
+ begin
+ process(clk, clr)
+ begin -- Asynchronous active-low clear
+ if clr = '0' then 
+ q <= "0000"; -- Positive clock edge 
+ elsif rising_edge(clk) then -- Parallel Load 
+ if shf_load = '0' then 
+ q <= d;
+ else
+ case sel is -- Shift Right 
+ when "00" => q <= serial_in & q(3 downto 1); -- Shift Left 
+ when "01" => q <= q(2 downto 0) & serial_in; -- Rotate Left
+ when "10" => q <= q(2 downto 0) & q(3); -- Rotate Right
+ when "11" => q <= q(0) & q(3 downto 1); 
+ when others => q <= q; end case; end if;
+ end if; 
+ end process; 
+ end Behavioral;
+
+OUTPUT:-
+
+
+
+
+
+
+FIFO Program:-
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+entity fifo is
+port (
+clk: in std logic;
+rst: in std_logic;
+enw : in std logic; write enable
+enr : in std_logic; read enable
+datain: in std_logic_vector(7 downto 0);
+dataout out std_logic_vector(7 downto 0);
+empty: out std_logic;
+full:out std_logic
+);
+end fifo;
+architecture Behavioral of fifo is
+constant DEPTH: integer := 16;
+type memory_type is array (0 to DEPTH-1) of std_logic_vector(7 downto 0);
+signal memory: memory_type:= (others => (others => '0'));
+signal readptr, writeptr: unsigned(3 downto 0) := (others => '0');
+signal dataout_reg: std_logic_vector(7 downto 0);
+signal full_reg, empty_reg: std_logic := '1';
+begin
+dataout <= dataout_reg;
+full <= full_reg;
+empty < empty_reg;
+process(clk, rst)
+begin
+if rst = '1' then
+readptr <= (others => '0');
+writeptr <= (others => '0');
+full_reg <= ‘0’:
+empty_reg <= '1';
+dataout_reg <= (others => '0');
+elsif rising edge(clk) then
+--Write operation
+if (enw= '1' and full_reg = '0') then
+memory(to_integer(writeptr)) <= datain;
+writeptr< writeptr + 1;
+end if;
+--Read operation
+if (enr= '1' and empty_reg = '0') then
+dataout_reg <= memory(to_integer(readptr));
+readptr< readptr + 1;
+end if;
+--Update flags
+if (writeptr +1 readptr) then
+full_reg <= '1';
+else
+full_reg <= '0';
+end if;
+if (readptr= writeptr) then
+empty_reg <= '1';
+else
+empty_reg <= '0';
+end if;
+end if;
+end process;
+end Behavioral;
+
+OUTPUT:- 
+
+
+
+
+
+
+
+
+
+
+
+MOD N COUNTER Program:-
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+entity counter is
+    Port (
+        clk   : in  STD_LOGIC;
+        reset : in  STD_LOGIC;
+        count : out STD_LOGIC_VECTOR (3 downto 0)
+    );
+end counter;
+architecture Behavioral of counter is
+    signal count_t : STD_LOGIC_VECTOR (3 downto 0);
+begin
+    process(clk, reset)
+    begin
+        if (reset = '1') then
+            count_t <= "0000";
+        elsif (clk'event and clk = '1') then
+            count_t <= std_logic_vector(unsigned(count_t) + 1);
+        end if;
+    end process;
+    count <= count_t;
+end Behavioral;
+OUTPUT:-
+
+
+
+
+
+
+LCD Program:-
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+entity LCD_interface is
+    Port (
+        clk    : in  STD_LOGIC_VECTOR(0 downto 0);
+        lcd_rw : out STD_LOGIC_VECTOR(0 downto 0);
+        lcd_e  : out STD_LOGIC_VECTOR(0 downto 0);
+        lcd_rs : out STD_LOGIC_VECTOR(0 downto 0);
+        data   : out STD_LOGIC_VECTOR(7 downto 0)
+    );
+end LCD_interface;
+architecture Behavioral of LCD_interface is
+    constant N : integer := 17;
+    type arr is array (1 to N) of
+        STD_LOGIC_VECTOR(7 downto 0);
+ constant data_s : arr := (
+        X"38",  -- 8-bit mode, 2-line display
+        X"0C",  -- Display ON, cursor OFF
+        X"06",  -- Entry mode
+        X"01",  -- Clear display
+        X"C0",  -- Move cursor to second line
+        X"57",  -- W
+        X"45",  -- E
+        X"4C",  -- L
+        X"43",  -- C
+        X"4F",  -- O
+        X"4D",  -- M
+        X"45",  -- E
+        X"20",  -- Space
+        X"45",  -- E
+        X"4E",  -- N
+        X"54",  -- T
+        X"43"   -- C
+    );
+begin
+    lcd_rw(0) <= '0';
+    process(clk(0))
+        variable i : integer range 0 to 2000000 := 0;
+        variable j : integer range 1 to N := 1;
+    begin
+        if rising_edge(clk(0)) then
+            if i < 2000000 then
+                i := i + 1;
+    else
+               i := 0;
+                if j <= 5 then
+                    lcd_rs(0) <= '0';
+                else
+                    lcd_rs(0) <= '1';
+                end if;
+                data <= data_s(j);
+                lcd_e(0) <= '1';
+                if j < N then
+                    j := j + 1;
+                else
+                    j := 5;
+                end if;			 
+            end if;
+            if i = 100000 then
+                lcd_e(0) <= '0';
+            end if;
+        end if;
+    end process;
+end Behavioral;
+
+OUTPUT:-
+
+
+
+
+
+
+
+
+
+
+
