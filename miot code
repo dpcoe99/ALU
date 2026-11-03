@@ -1,0 +1,190 @@
+/* =========================================================================
+   DPCOE-MIOT Laboratory Manual - Combined Arduino Sketches
+   ========================================================================= */
+
+/* --- EXPERIMENT NO. 02: Digital & Analog Read/Write --- */
+
+// 1. Digital Read/Write
+#define ledPin 13 // choose the pin for the LED
+#define switchPin 8 // choose the input pin (for a pushbutton)
+int val = 0; // variable for reading the pin status
+
+void setup_exp2_digital() {
+  pinMode(ledPin, OUTPUT); // declare LED as output
+  pinMode(switchPin, INPUT); // declare pushbutton as input
+}
+
+void loop_exp2_digital() {
+  val = digitalRead(switchPin); // read input value
+  if (val == HIGH) { // check if the input is HIGH (button released)
+    digitalWrite(ledPin, LOW); // turn LED OFF
+  }
+  else {
+    digitalWrite(ledPin, HIGH); // turn LED ON
+  }
+}
+
+// 2. Analog Read
+void setup_exp2_analogRead() {
+  Serial.begin(9600);
+}
+
+void loop_exp2_analogRead() {
+  int sensorValue = analogRead(A0);
+  Serial.println(sensorValue);
+  delay(100);
+}
+
+// 3. Analog Read/Write
+int PWM_Output = 10;
+void setup_exp2_analogWrite() {
+  pinMode(PWM_Output, OUTPUT);
+}
+
+void loop_exp2_analogWrite() {
+  int analogValue = analogRead(A0);
+  analogWrite(PWM_Output, analogValue);
+  delay(100);
+}
+
+
+/* --- EXPERIMENT NO. 03: Interfacing Sensors (LM35, IR, Ultrasonic) --- */
+
+// 1. Temperature Sensor (LM35)
+#define sensorPin A0
+void setup_exp3_lm35() {
+  Serial.begin(9600);
+}
+
+void loop_exp3_lm35() {
+  int reading = analogRead(sensorPin);
+  float voltage = reading * (5.0 / 1024.0);
+  float temperatureC = voltage * 100;
+  
+  Serial.print("Temperature: ");
+  Serial.print(temperatureC);
+  Serial.print("\xC2\xB0");
+  Serial.print("C | ");
+  
+  float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
+  Serial.print(temperatureF);
+  Serial.print("\xC2\xB0");
+  Serial.println("F");
+  delay(1000);
+}
+
+// 2. IR Sensor
+int irLedPin = 13;
+int irInputPin = 2;
+int irVal = 0;
+
+void setup_exp3_ir() {
+  pinMode(irLedPin, OUTPUT);
+  pinMode(irInputPin, INPUT);
+  Serial.begin(9600);
+}
+
+void loop_exp3_ir() {
+  irVal = digitalRead(irInputPin);
+  if(irVal == HIGH) {
+    Serial.print("Object Absent\n");
+    digitalWrite(irLedPin, LOW);
+  }
+  else {
+    Serial.print("Object Present\n");
+    digitalWrite(irLedPin, HIGH);
+  }
+}
+
+// 3. Ultrasonic Sensor (HC-SR04)
+const int trigPin = 9;
+const int echoPin = 2;
+long duration;
+int distance;
+
+void setup_exp3_ultrasonic() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  Serial.begin(9600);
+}
+
+void loop_exp3_ultrasonic() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+  
+  Serial.print("Distance: ");
+  Serial.println(distance);
+}
+
+
+/* --- EXPERIMENT NO. 04: DC Motor Control --- */
+
+// 1. Spin Motor
+int motorPin_exp4 = 3;
+void loop_exp4_spin() { 
+  digitalWrite(motorPin_exp4, HIGH); 
+}
+
+// 2. Motor Speed Control via Serial
+int motorPin_speed = 9;
+void setup_exp4_speed() {
+  pinMode(motorPin_speed, OUTPUT);
+  Serial.begin(9600);
+  while (!Serial);
+  Serial.println("Speed 0 to 255");
+}
+
+void loop_exp4_speed() {
+  if (Serial.available()) {
+    int speed = Serial.parseInt();
+    if (speed >= 0 && speed <= 255) {
+      analogWrite(motorPin_speed, speed); 
+    } 
+  }
+}
+
+// 3. DC Motor Interfacing via L298N Driver
+int enable2 = 9;
+int in3 = 10;
+int in4 = 11;
+
+void setup_exp4_l298n() {
+  pinMode(enable2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+}
+
+void loop_exp4_l298n() {
+  for(int i = 255; i > 0; i--) {
+    analogWrite(enable2, i);
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+  }
+}
+
+
+/* --- EXPERIMENT NO. 07: Bluetooth Module (HC-06) Interfacing --- */
+
+#include <SoftwareSerial.h>
+SoftwareSerial BTserial(2, 3); // RX | TX
+
+void setup_exp7_bt() {
+  Serial.begin(9600);
+  Serial.println("Enter AT commands:");
+  BTserial.begin(9600);
+}
+
+void loop_exp7_bt() {
+  if (BTserial.available()) {
+    Serial.write(BTserial.read());
+  }
+  if (Serial.available()) {
+    BTserial.write(Serial.read()); 
+  }
+}
